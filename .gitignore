@@ -1,0 +1,23 @@
+# OpenSCAD
+*.stl.bak
+*.deps
+
+# Temp files
+*.tmp
+*~
+tmpclaude-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Development render images (too many, regenerate with render.sh)
+*.png
+!docs/*.png
+
+# Keep reference screenshot
+!Screenshot*.png
