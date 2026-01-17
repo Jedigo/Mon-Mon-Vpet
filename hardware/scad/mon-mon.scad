@@ -13,6 +13,7 @@
 include <parameters.scad>
 use <front_shell.scad>
 use <back_shell.scad>
+use <screen_bezel.scad>
 use <buttons.scad>
 use <components/esp32_feather.scad>
 use <components/ili9225_display.scad>
@@ -25,8 +26,8 @@ use <components/tact_switch.scad>
 // -----------------------------------------------------------------------------
 
 // Which part to render for STL export (set to "none" for full assembly)
-// Options: "none", "front_shell", "back_shell", "dpad", "button_a", "button_b",
-//          "text_inlay", "dot_inlay"
+// Options: "none", "front_shell", "back_shell", "screen_bezel", "dpad",
+//          "button_a", "button_b", "text_inlay", "dot_inlay"
 render_part = "none";
 
 // Visualization toggles (only apply when render_part = "none")
@@ -38,6 +39,7 @@ show_buttons = true;          // Show button plungers
 // Explode distance
 explode_z = show_exploded ? 25 : 0;
 explode_buttons = show_exploded ? 10 : 0;
+explode_bezel = show_exploded ? 15 : 0;
 
 // -----------------------------------------------------------------------------
 // ASSEMBLY
@@ -55,6 +57,12 @@ module full_assembly() {
     translate([0, 0, shell_depth_back + explode_z])
     color(color_shell_front)
     front_shell();
+
+    // ----- SCREEN BEZEL -----
+    // Separate piece for multi-color printing (dark gray/black)
+    translate([0, 0, shell_depth_back + explode_bezel])
+    color([0.3, 0.3, 0.35])
+    screen_bezel_positioned();
 
     // ----- INTERNAL COMPONENTS -----
     if (show_internal_components) {
@@ -149,6 +157,11 @@ else if (render_part == "back_shell") {
     // Export back shell - print inside face up
     back_shell();
 }
+else if (render_part == "screen_bezel") {
+    // Export screen bezel - print in DARK GRAY or BLACK filament
+    // Print flat (text side up)
+    screen_bezel();
+}
 else if (render_part == "dpad") {
     // Export D-pad - print flat
     dpad();
@@ -194,7 +207,8 @@ echo(str("Exploded view: ", show_exploded));
 echo(str("Cross section: ", show_cross_section));
 echo("===========================================");
 echo("To export STL, set render_part to one of:");
-echo("  front_shell, back_shell, dpad, button_a, button_b");
+echo("  front_shell, back_shell, screen_bezel (DARK GRAY)");
+echo("  dpad, button_a, button_b");
 echo("  text_inlay (BLACK), dot_inlay (RED)");
 echo("Then: Design > Render (F6), File > Export > STL");
 echo("===========================================");

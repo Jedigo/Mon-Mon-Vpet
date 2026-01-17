@@ -25,6 +25,21 @@ shell_corner_radius = 8;     // Corner rounding
 shell_overlap = 2.0;
 shell_overlap_clearance = 0.2;
 
+// Edge rounding (fillet) for comfort
+shell_fillet_radius = 1.0;   // Radius for rounding exterior edges
+
+// Front top trim (DMG-style wrap-around ridge)
+front_trim_width = 2.0;       // Width of trim line
+front_trim_height = 0.5;      // Protrusion height
+front_trim_y = shell_height - 5;  // Y position of horizontal trim
+
+// Back grip ridges (DMG-style)
+back_ridge_count = 12;        // Number of horizontal grip ridges
+back_ridge_width = 1.2;       // Width of each ridge
+back_ridge_height = 0.6;      // Height of ridge protrusion
+back_ridge_spacing = 2.5;     // Spacing between ridges
+back_ridge_y_start = 10;      // Start Y position (lower portion)
+
 // -----------------------------------------------------------------------------
 // SCREEN WINDOW
 // -----------------------------------------------------------------------------
@@ -91,6 +106,7 @@ select_start_height = 3;     // Pill height
 select_start_depth = 0.8;    // How much they protrude
 select_start_spacing = 14;   // Space between centers
 select_start_y = 18;         // Distance from bottom edge
+select_start_angle = 25;     // DMG-style angle (positive = tilted right like original)
 
 // -----------------------------------------------------------------------------
 // SPEAKER GRILLE
@@ -190,6 +206,34 @@ brand_text = "Mon-Mon";
 brand_text_size = 6;
 brand_text_depth = 0.6;      // Emboss/deboss depth
 brand_text_y = shell_height - 75;  // Position below screen
+
+// -----------------------------------------------------------------------------
+// SCREEN BEZEL (DMG-style raised frame)
+// -----------------------------------------------------------------------------
+bezel_margin = 6;            // Extension beyond screen window
+bezel_height = 0.4;          // Flush with shell surface (matches relief pocket depth)
+bezel_corner_radius = 3;     // Inner corner rounding
+bezel_text = "Mon-Mon Vpet";
+bezel_text_size = 2.0;           // Smaller text like DMG
+bezel_text_depth = 0.4;      // Embossed text depth
+
+// -----------------------------------------------------------------------------
+// BUTTON LABELS (A, B, SELECT, START)
+// -----------------------------------------------------------------------------
+button_label_size = 3;       // Text height for A/B
+button_label_depth = 0.4;    // Emboss/deboss depth
+button_label_offset = 1;     // Distance from button edge
+select_start_label_size = 2; // Smaller text for SELECT/START
+
+// -----------------------------------------------------------------------------
+// DECORATIVE SLASHES (above speaker grille)
+// -----------------------------------------------------------------------------
+slash_count = 3;
+slash_length = 8;
+slash_width = 1;
+slash_depth = 0.5;
+slash_spacing = 2.5;
+slash_angle = 25;            // Match speaker slot angle
 
 // -----------------------------------------------------------------------------
 // ASSEMBLY / VISUALIZATION

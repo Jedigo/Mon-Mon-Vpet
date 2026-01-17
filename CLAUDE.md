@@ -19,15 +19,31 @@ The shell design has been updated to be more DMG-accurate:
 - ✅ Select/Start as subtle pill indents
 - 🔲 Additional DMG details still needed (see TODO below)
 
+## Project Structure
+
+```
+Mon-Mon-Vpet-Project/
+├── hardware/           # 3D printable enclosure
+│   ├── scad/           # OpenSCAD source files
+│   ├── stl/            # Exported STL files for printing
+│   ├── docs/           # Assembly guide, renders
+│   ├── reference/      # DMG Game Boy reference images
+│   └── render.sh       # OpenSCAD rendering script
+├── software/           # ESP32 firmware (in development)
+├── CLAUDE.md
+└── SESSION_SUMMARY.md
+```
+
 ## OpenSCAD Architecture
 
-### File Structure
-- `scad/mon-mon.scad` - Main assembly file with render options and STL export logic
-- `scad/parameters.scad` - Central parameters file (all dimensions as variables)
-- `scad/front_shell.scad` - Front shell with screen window, buttons, speaker grille (DMG-style)
-- `scad/back_shell.scad` - Back shell with component mounts, countersunk screw holes
-- `scad/buttons.scad` - D-pad and A/B button plungers
-- `scad/components/` - Reference models for fitment verification (not for printing)
+### Hardware File Structure
+- `hardware/scad/mon-mon.scad` - Main assembly file with render options and STL export logic
+- `hardware/scad/parameters.scad` - Central parameters file (all dimensions as variables)
+- `hardware/scad/front_shell.scad` - Front shell with screen window, buttons, speaker grille (DMG-style)
+- `hardware/scad/back_shell.scad` - Back shell with component mounts, countersunk screw holes
+- `hardware/scad/buttons.scad` - D-pad and A/B button plungers
+- `hardware/scad/screen_bezel.scad` - Separate bezel piece for multi-color printing
+- `hardware/scad/components/` - Reference models for fitment verification (not for printing)
 
 ### Critical: include vs use
 - **`include`** imports both modules AND variables - use for `parameters.scad`
@@ -95,12 +111,12 @@ Adjust these for your FDM printer:
 ## Rendering SCAD Files
 To preview OpenSCAD models, use the render script:
 ```bash
-./render.sh scad/filename.scad output.png
+./hardware/render.sh hardware/scad/filename.scad output.png
 ```
 
 You can view the resulting PNG to see what the model looks like and iterate on the design.
 
 Optional parameters: width, height, camera
 ```bash
-./render.sh scad/file.scad output.png 800 600 0,0,0,55,0,25,200
+./hardware/render.sh hardware/scad/file.scad output.png 800 600 0,0,0,55,0,25,200
 ```

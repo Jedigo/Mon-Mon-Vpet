@@ -43,6 +43,40 @@ module dmg_shell_outline_back(h) {
 }
 
 // -----------------------------------------------------------------------------
+// DMG-style shell outline with filleted/rounded exterior edges for comfort
+// Only rounds the BOTTOM edge (exterior face), keeps top edge sharp for shell seam
+// -----------------------------------------------------------------------------
+module dmg_shell_outline_back_filleted(h) {
+    fillet = shell_fillet_radius;
+
+    // Main body from z=fillet to z=h (sharp edge at z=h for shell seam)
+    translate([0, 0, fillet])
+        dmg_shell_outline_back(h - fillet);
+
+    // Rounded bottom cap at z=0 to z=fillet
+    mirror([0, 0, 1])
+    translate([0, 0, -fillet])
+    minkowski() {
+        linear_extrude(height=0.01)
+        hull() {
+            translate([shell_corner_radius, shell_height - shell_corner_radius])
+                circle(r=shell_corner_radius - fillet, $fn=32);
+            translate([shell_width - shell_corner_radius, shell_height - shell_corner_radius])
+                circle(r=shell_corner_radius - fillet, $fn=32);
+            translate([shell_corner_radius, shell_corner_radius])
+                circle(r=shell_corner_radius - fillet, $fn=32);
+            translate([shell_width - 12, 12])
+                circle(r=12 - fillet, $fn=48);
+        }
+        difference() {
+            sphere(r=fillet, $fn=16);
+            translate([0, 0, -fillet])
+                cube([fillet*2, fillet*2, fillet*2], center=true);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 // DMG-style interior cavity
 // -----------------------------------------------------------------------------
 module dmg_interior_cavity_back(h) {
@@ -60,14 +94,38 @@ module dmg_interior_cavity_back(h) {
 }
 
 // -----------------------------------------------------------------------------
+// Back Grip Grooves (continuous grooves wrapping around sides and back)
+// These are recessed channels that wrap from left side, across back, to right side
+// -----------------------------------------------------------------------------
+module back_grip_grooves() {
+    groove_depth = 0.6;  // How deep the groove cuts into the surface
+
+    for (i = [0 : back_ridge_count - 1]) {
+        groove_y = back_ridge_y_start + i * back_ridge_spacing;
+
+        // Left side groove (cuts into left edge)
+        translate([-groove_depth, groove_y, -1])
+            cube([groove_depth + 0.1, back_ridge_width, shell_depth_back + 2]);
+
+        // Back surface groove (connects left to right across the back)
+        translate([0, groove_y, -groove_depth])
+            cube([shell_width, back_ridge_width, groove_depth + 0.1]);
+
+        // Right side groove (cuts into right edge)
+        translate([shell_width - 0.1, groove_y, -1])
+            cube([groove_depth + 0.1, back_ridge_width, shell_depth_back + 2]);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Back Shell Main Module
 // Screws enter from outside back, thread into bosses in front shell
 // -----------------------------------------------------------------------------
 module back_shell() {
     difference() {
         union() {
-            // Outer shell body - DMG style
-            dmg_shell_outline_back(shell_depth_back);
+            // Outer shell body - DMG style with filleted edges for comfort
+            dmg_shell_outline_back_filleted(shell_depth_back);
 
             // Overlap lip (extends up to mate with front shell)
             translate([0, 0, shell_depth_back - 0.01])
@@ -110,6 +168,9 @@ module back_shell() {
             translate([pos[0], pos[1], -0.1])
                 cylinder(h=screw_head_depth + 0.1, d=screw_head_diameter, $fn=16);
         }
+
+        // Grip grooves on sides (DMG-style wrap-around grooves)
+        back_grip_grooves();
     }
 
     // ----- Internal Features -----

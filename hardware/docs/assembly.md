@@ -21,20 +21,22 @@
 
 ## STL Export
 
-Open `scad/mon-mon.scad` in OpenSCAD:
+Open `hardware/scad/mon-mon.scad` in OpenSCAD:
 
 1. Set `render_part = "front_shell";`
 2. Press F6 to render
 3. File > Export > Export as STL
-4. Repeat for each part: `back_shell`, `dpad`, `button_a`, `button_b`, `ab_plate`
+4. Repeat for each part: `back_shell`, `screen_bezel`, `dpad`, `button_a`, `button_b`
+
+**Note:** Print screen_bezel in DARK GRAY or BLACK filament for contrast.
 
 ## Bill of Materials
 
 | Qty | Component | Notes |
 |-----|-----------|-------|
-| 1 | ESP32 Feather HUZZAH32 | Adafruit #3405 |
+| 1 | ESP32 Feather V2 | Adafruit #5400 (PCB Antenna) |
 | 1 | 2.0" ILI9225 TFT | Generic SPI module |
-| 1 | 500mAh LiPo | Adafruit #1578 or similar |
+| 1 | 500mAh LiPo (503035) | 35x30x5mm, JST-PH 2.0mm connector |
 | 1 | Piezo Buzzer PS1240 | Adafruit #160 |
 | 3 | 6x6mm Tact Switches | Through-hole |
 | 4 | M2x6mm Screws | Self-tapping into plastic |
