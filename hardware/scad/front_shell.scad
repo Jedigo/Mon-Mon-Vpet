@@ -171,65 +171,181 @@ module select_start_bumps() {
 }
 
 // -----------------------------------------------------------------------------
-// Mon-Mon Branding - Inlay system for multi-color printing
-// Positioned upper-left of screen like reference image
+// AMS Multi-Color Inlay System
+// Inlays with anchors that print together with shell for proper adhesion
 // -----------------------------------------------------------------------------
 
-// Shared parameters for inlay system
-inlay_depth = 0.4;  // 2 layers at 0.2mm
-inlay_tolerance = 0.1;  // Slight undersize for press fit
-brand_dot_x = 7;  // Dot comes first (left side)
-brand_text_x = brand_dot_x + 4;  // Text after dot
-brand_text_y = screen_center_y + screen_window_height/2 + 4;
+// Inlay parameters - surface depth + anchor for reliable AMS printing
+inlay_surface_depth = 0.6;  // Visible surface portion (3 layers at 0.2mm)
+inlay_anchor_depth = 1.5;   // Anchor extending into shell body
+inlay_total_depth = inlay_surface_depth + inlay_anchor_depth;  // 2.1mm total
 
-// Pocket cut into front shell (slightly oversized)
-module brand_inlay_pocket() {
-    // Red dot pocket (left side)
-    translate([brand_dot_x, brand_text_y, shell_depth_front - inlay_depth + 0.01])
-        cylinder(h=inlay_depth, d=2, $fn=16);
+// AMS clearances - gap keeps parts as separate meshes for Split to Parts
+inlay_cutout_clearance = 0.1;   // Shell cutouts slightly larger than base shape
+inlay_overlap = -0.05;          // Negative = inlays smaller than cutouts = gap for Split to Parts
 
-    // "Mon-Mon" text pocket (right of dot)
-    translate([brand_text_x, brand_text_y, shell_depth_front - inlay_depth + 0.01])
-    linear_extrude(height=inlay_depth)
-    text("Mon-Mon", size=3.5, halign="left", valign="center",
-         font="Liberation Sans:style=Bold");
-}
-
-// Text inlay piece - print in BLACK, glue into pocket
-module brand_text_inlay() {
-    linear_extrude(height=inlay_depth - 0.05)
-    offset(r=-inlay_tolerance)  // Slightly smaller for fit
-    text("Mon-Mon", size=3.5, halign="left", valign="center",
-         font="Liberation Sans:style=Bold");
-}
-
-// Dot inlay piece - print in RED, glue into pocket
-module brand_dot_inlay() {
-    cylinder(h=inlay_depth - 0.05, d=2 - inlay_tolerance*2, $fn=16);
-}
+// Legacy compatibility
+inlay_depth = inlay_surface_depth;
+inlay_clearance = inlay_cutout_clearance;
 
 // -----------------------------------------------------------------------------
-// Branding Text Below Bezel (like "Nintendo GAME BOY" on DMG)
+// AMS Cutouts (pockets in front shell for inlays with anchors)
+// These create space for the full inlay depth (surface + anchor)
 // -----------------------------------------------------------------------------
-module branding_text_cutout() {
-    // Position just below the screen bezel, centered
+
+// VIRTUAL PET SYSTEM text cutout (full depth for inlay + anchor)
+module virtual_pet_text_cutout() {
     translate([screen_center_x,
                screen_center_y - screen_window_height/2 - bezel_margin - 2,
-               shell_depth_front - 0.3])
-    linear_extrude(height=0.4)
+               shell_depth_front - inlay_total_depth])
+    linear_extrude(height=inlay_total_depth + 0.1)
+    offset(r=inlay_clearance)
     text(bezel_text, size=bezel_text_size, halign="center", valign="top",
          font="Liberation Sans:style=Bold");
 }
 
+// SELECT text cutout
+module select_text_cutout() {
+    translate([shell_width/2 - select_start_spacing/2 + 1.5,
+               select_start_y - 3,
+               shell_depth_front - inlay_total_depth])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=inlay_total_depth + 0.1)
+    offset(r=inlay_clearance)
+    text("SELECT", size=select_start_label_size, halign="center", valign="top",
+         font="Liberation Sans:style=Bold");
+}
+
+// START text cutout
+module start_text_cutout() {
+    translate([shell_width/2 + select_start_spacing/2 + 1.5,
+               select_start_y - 3,
+               shell_depth_front - inlay_total_depth])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=inlay_total_depth + 0.1)
+    offset(r=inlay_clearance)
+    text("START", size=select_start_label_size, halign="center", valign="top",
+         font="Liberation Sans:style=Bold");
+}
+
+// SELECT pill cutout
+module select_pill_cutout() {
+    translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - inlay_total_depth])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=inlay_total_depth + 0.1)
+    offset(r=inlay_clearance)
+    hull() {
+        translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
+        translate([select_start_width/2 - 1.5, 0]) circle(d=3, $fn=24);
+    }
+}
+
+// START pill cutout
+module start_pill_cutout() {
+    translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - inlay_total_depth])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=inlay_total_depth + 0.1)
+    offset(r=inlay_clearance)
+    hull() {
+        translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
+        translate([select_start_width/2 - 1.5, 0]) circle(d=3, $fn=24);
+    }
+}
+
 // -----------------------------------------------------------------------------
-// Bezel Relief Pocket (shallow recess for bezel to sit in for easy gluing)
+// AMS Inlay Pieces (with anchors for reliable printing)
+// These fill the cutouts with:
+//   - Surface portion: flush with shell exterior
+//   - Anchor portion: extends into shell body for adhesion during printing
+// Positioned to match cutouts - mon-mon.scad flips them for face-down printing
+// -----------------------------------------------------------------------------
+
+// Z position for inlays - starts at bottom of pocket
+inlay_z = shell_depth_front - inlay_total_depth;
+
+// VIRTUAL PET SYSTEM text inlay - print in dark color
+// Uses offset to OVERLAP with shell walls for proper AMS slicing
+module virtual_pet_text_inlay() {
+    translate([screen_center_x,
+               screen_center_y - screen_window_height/2 - bezel_margin - 2,
+               inlay_z])
+    linear_extrude(height=inlay_total_depth)
+    offset(r=inlay_overlap)
+    text(bezel_text, size=bezel_text_size, halign="center", valign="top",
+         font="Liberation Sans:style=Bold");
+}
+
+// SELECT text inlay
+module select_text_inlay() {
+    translate([shell_width/2 - select_start_spacing/2 + 1.5,
+               select_start_y - 3,
+               inlay_z])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=inlay_total_depth)
+    offset(r=inlay_overlap)
+    text("SELECT", size=select_start_label_size, halign="center", valign="top",
+         font="Liberation Sans:style=Bold");
+}
+
+// START text inlay
+module start_text_inlay() {
+    translate([shell_width/2 + select_start_spacing/2 + 1.5,
+               select_start_y - 3,
+               inlay_z])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=inlay_total_depth)
+    offset(r=inlay_overlap)
+    text("START", size=select_start_label_size, halign="center", valign="top",
+         font="Liberation Sans:style=Bold");
+}
+
+// SELECT pill inlay
+// Protrudes 0.1mm ABOVE shell surface so Split to Parts recognizes it as separate
+module select_pill_inlay() {
+    translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - 0.5])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=0.6)  // 0.5mm below surface + 0.1mm above
+    offset(r=inlay_overlap)
+    hull() {
+        translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
+        translate([select_start_width/2 - 1.5, 0]) circle(d=3, $fn=24);
+    }
+}
+
+// START pill inlay
+module start_pill_inlay() {
+    translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - 0.5])
+    rotate([0, 0, select_start_angle])
+    linear_extrude(height=0.6)  // 0.5mm below surface + 0.1mm above
+    offset(r=inlay_overlap)
+    hull() {
+        translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
+        translate([select_start_width/2 - 1.5, 0]) circle(d=3, $fn=24);
+    }
+}
+
+// Combined inlay for all dark-colored pieces (standalone STL export)
+// Export this separately, then Add Part in Bambu Studio
+// Text removed - too small for legible FDM printing
+module dark_inlays_combined() {
+    select_pill_inlay();
+    start_pill_inlay();
+}
+
+// -----------------------------------------------------------------------------
+// Branding Text Below Bezel - REMOVED (now using AMS inlay system above)
+// -----------------------------------------------------------------------------
+// Old recessed approach replaced by through-hole cutouts for flush AMS printing
+
+// -----------------------------------------------------------------------------
+// Bezel Relief Pocket (deep pocket for AMS bezel with anchor)
 // -----------------------------------------------------------------------------
 module bezel_relief_pocket() {
     // Bezel dimensions (must match screen_bezel module)
     bezel_outer_w = screen_window_width + bezel_margin * 2;
     bezel_outer_h = screen_window_height + bezel_margin * 2;
-    relief_depth = 0.4;  // Shallow pocket for bezel to rest in
-    relief_clearance = 0.15;  // Slight clearance for fit
+    relief_depth = 1.6;       // Deep pocket for AMS bezel (0.6 surface + 1.0 anchor)
+    relief_clearance = 0.05;  // Minimal clearance - bezel overlaps for AMS
 
     // Corner radii - must match screen_bezel
     corner_r = bezel_corner_radius;
@@ -273,23 +389,9 @@ module button_labels() {
 }
 
 // -----------------------------------------------------------------------------
-// SELECT/START Labels (shallow pockets for AMS color change, angled like DMG)
+// SELECT/START Labels - REMOVED (now using AMS inlay system)
 // -----------------------------------------------------------------------------
-module select_start_labels() {
-    // "SELECT" label - centered below left pill, angled, shallow pocket for AMS
-    translate([shell_width/2 - select_start_spacing/2 + 1.5, select_start_y - 3, shell_depth_front - 0.4])
-    rotate([0, 0, select_start_angle])
-    linear_extrude(height=0.5)
-    text("SELECT", size=select_start_label_size, halign="center", valign="top",
-         font="Liberation Sans:style=Bold");
-
-    // "START" label - centered below right pill, angled, shallow pocket for AMS
-    translate([shell_width/2 + select_start_spacing/2 + 1.5, select_start_y - 3, shell_depth_front - 0.4])
-    rotate([0, 0, select_start_angle])
-    linear_extrude(height=0.5)
-    text("START", size=select_start_label_size, halign="center", valign="top",
-         font="Liberation Sans:style=Bold");
-}
+// Old recessed approach replaced by through-hole cutouts for flush AMS printing
 
 // -----------------------------------------------------------------------------
 // Front Top Grooves (DMG-style wrap-around decorative grooves)
@@ -360,8 +462,10 @@ module front_shell() {
         // DMG-style wrap-around decorative grooves at top
         front_top_grooves();
 
-        // "VIRTUAL PET SYSTEM" branding below screen (recessed, like DMG)
-        branding_text_cutout();
+        // ----- AMS Multi-Color Cutouts -----
+        // SELECT/START pill shapes only (text removed - too small for FDM)
+        select_pill_cutout();
+        start_pill_cutout();
 
         // Bezel relief pocket (for bezel to sit flush and easy gluing)
         bezel_relief_pocket();
@@ -412,23 +516,7 @@ module front_shell() {
                    -0.1])
             speaker_grille_slots();
 
-        // Select/Start inlay pockets (flush with surface for AMS color change)
-        // Shallow pockets (0.4mm = 2 layers at 0.2mm) for pill shapes
-        translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - 0.4])
-        rotate([0, 0, select_start_angle])
-        hull() {
-            translate([-select_start_width/2 + 1.5, 0, 0]) cylinder(h=0.5, d=3, $fn=16);
-            translate([select_start_width/2 - 1.5, 0, 0]) cylinder(h=0.5, d=3, $fn=16);
-        }
-        translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - 0.4])
-        rotate([0, 0, select_start_angle])
-        hull() {
-            translate([-select_start_width/2 + 1.5, 0, 0]) cylinder(h=0.5, d=3, $fn=16);
-            translate([select_start_width/2 - 1.5, 0, 0]) cylinder(h=0.5, d=3, $fn=16);
-        }
-
-        // SELECT/START labels (shallow pockets for AMS color change)
-        select_start_labels();
+        // Note: SELECT/START pills and labels now use through-hole AMS cutouts above
     }
 
     // ----- Internal Features -----
@@ -538,6 +626,3 @@ module front_shell() {
 
 // Preview (renders when opening this file directly)
 color(color_shell_front) front_shell();
-
-// Screen bezel as separate piece (for preview)
-color([0.3, 0.3, 0.35]) screen_bezel();

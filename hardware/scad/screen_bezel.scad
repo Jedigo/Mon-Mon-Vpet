@@ -58,5 +58,56 @@ module screen_bezel_positioned() {
         screen_bezel();
 }
 
+// -----------------------------------------------------------------------------
+// AMS Version - Bezel with anchor for multi-color printing
+// Thicker than standalone bezel, with overlap for proper AMS slicing
+// -----------------------------------------------------------------------------
+
+// AMS bezel parameters
+bezel_ams_surface = 0.6;    // Visible surface (3 layers)
+bezel_ams_anchor = 1.0;     // Anchor into shell body
+bezel_ams_total = bezel_ams_surface + bezel_ams_anchor;  // 1.6mm total
+bezel_ams_overlap = 0;      // No overlap - stays separate mesh for Split to Parts
+
+module screen_bezel_ams() {
+    // Bezel outer dimensions - slightly larger for overlap
+    bezel_outer_w = screen_window_width + bezel_margin * 2;
+    bezel_outer_h = screen_window_height + bezel_margin * 2;
+    bezel_inner_w = screen_window_width;
+    bezel_inner_h = screen_window_height;
+
+    // Corner radii - bottom-right is slightly larger like DMG
+    corner_r = bezel_corner_radius;
+    corner_r_br = 6;
+
+    difference() {
+        // Outer bezel shape with overlap
+        hull() {
+            translate([corner_r - bezel_ams_overlap, bezel_outer_h - corner_r + bezel_ams_overlap, 0])
+                cylinder(h=bezel_ams_total, r=corner_r + bezel_ams_overlap, $fn=24);
+            translate([bezel_outer_w - corner_r + bezel_ams_overlap, bezel_outer_h - corner_r + bezel_ams_overlap, 0])
+                cylinder(h=bezel_ams_total, r=corner_r + bezel_ams_overlap, $fn=24);
+            translate([corner_r - bezel_ams_overlap, corner_r - bezel_ams_overlap, 0])
+                cylinder(h=bezel_ams_total, r=corner_r + bezel_ams_overlap, $fn=24);
+            translate([bezel_outer_w - corner_r_br + bezel_ams_overlap, corner_r_br - bezel_ams_overlap, 0])
+                cylinder(h=bezel_ams_total, r=corner_r_br + bezel_ams_overlap, $fn=32);
+        }
+
+        // Inner cutout for screen (no overlap here - this is the window)
+        translate([bezel_margin, bezel_margin, -0.1])
+            cube([bezel_inner_w, bezel_inner_h, bezel_ams_total + 0.2]);
+    }
+}
+
+// AMS bezel positioned in shell coordinate system
+module screen_bezel_ams_positioned() {
+    bezel_outer_w = screen_window_width + bezel_margin * 2;
+
+    translate([screen_center_x - bezel_outer_w/2,
+               screen_center_y - screen_window_height/2 - bezel_margin,
+               shell_depth_front - bezel_ams_total])
+        screen_bezel_ams();
+}
+
 // Preview (renders when opening this file directly)
 color([0.3, 0.3, 0.35]) screen_bezel();

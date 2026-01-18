@@ -27,7 +27,17 @@ use <components/tact_switch.scad>
 
 // Which part to render for STL export (set to "none" for full assembly)
 // Options: "none", "front_shell", "back_shell", "screen_bezel", "dpad",
-//          "button_a", "button_b", "text_inlay", "dot_inlay"
+//          "button_a", "button_b"
+//
+// === AMS MULTI-COLOR PRINTING (Bambu) ===
+// RECOMMENDED: Use "front_shell_combined" and color painting:
+//   1. Export "front_shell_combined" (shell + bezel + pills as one STL)
+//   2. Import into Bambu Studio
+//   3. Use color painting to paint bezel and pills a different color
+//   4. Slice and print
+//
+// Alternative (separate parts - may have alignment issues):
+//   "front_shell", "inlay_dark_combined", "bezel_ams"
 render_part = "none";
 
 // Visualization toggles (only apply when render_part = "none")
@@ -149,8 +159,22 @@ module cross_section_view() {
 // RENDER LOGIC
 // -----------------------------------------------------------------------------
 
-if (render_part == "front_shell") {
-    // Export front shell - print face down
+if (render_part == "front_shell_combined") {
+    // AMS: Shell + bezel + pills as SEPARATE meshes in one STL
+    // FLIPPED for face-down printing (exterior at Z=0)
+    // In Bambu Studio: Right-click → Split to Parts → assign colors
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0]) {
+        front_shell();
+        // Bezel and pills slightly inset (no overlap) so they stay separate meshes
+        screen_bezel_ams_positioned();
+        dark_inlays_combined();
+    }
+}
+else if (render_part == "front_shell") {
+    // Export front shell only (without bezel/pills) - FLIPPED for face-down printing
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
     front_shell();
 }
 else if (render_part == "back_shell") {
@@ -158,9 +182,23 @@ else if (render_part == "back_shell") {
     back_shell();
 }
 else if (render_part == "screen_bezel") {
-    // Export screen bezel - print in DARK GRAY or BLACK filament
-    // Print flat (text side up)
+    // Export standalone screen bezel (for gluing, not AMS)
     screen_bezel();
+}
+else if (render_part == "bezel_ams") {
+    // Export screen bezel for AMS - FLIPPED to match front_shell
+    // Includes anchor points at shell corners so bounding box matches front_shell
+    // This ensures Bambu Studio aligns them correctly when using Add Part
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0]) {
+        screen_bezel_ams_positioned();
+        // Tiny anchor points at shell corners (invisible but set bounding box)
+        for (pos = [[0.1, 0.1], [shell_width-0.1, 0.1],
+                    [0.1, shell_height-0.1], [shell_width-0.1, shell_height-0.1]]) {
+            translate([pos[0], pos[1], shell_depth_front - 0.05])
+                cube([0.1, 0.1, 0.05]);
+        }
+    }
 }
 else if (render_part == "dpad") {
     // Export D-pad - print flat
@@ -178,13 +216,53 @@ else if (render_part == "button_b") {
     translate([0, 0, -button_cap_height])
         button_b();
 }
-else if (render_part == "text_inlay") {
-    // Export text inlay - print in BLACK filament
-    brand_text_inlay();
+// ----- AMS Flush Inlays -----
+// All inlays are FLIPPED to match the flipped front_shell for face-down AMS printing
+// Both shell exterior and inlays end up at Z=0
+else if (render_part == "inlay_virtual_pet") {
+    // VIRTUAL PET SYSTEM text - print in dark color
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
+    virtual_pet_text_inlay();
 }
-else if (render_part == "dot_inlay") {
-    // Export dot inlay - print in RED filament
-    brand_dot_inlay();
+else if (render_part == "inlay_select_text") {
+    // SELECT text - print in dark color
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
+    select_text_inlay();
+}
+else if (render_part == "inlay_start_text") {
+    // START text - print in dark color
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
+    start_text_inlay();
+}
+else if (render_part == "inlay_select_pill") {
+    // SELECT pill shape - print in dark color
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
+    select_pill_inlay();
+}
+else if (render_part == "inlay_start_pill") {
+    // START pill shape - print in dark color
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
+    start_pill_inlay();
+}
+else if (render_part == "inlay_dark_combined") {
+    // All dark-colored inlays combined into one STL
+    // FLIPPED to match front_shell for face-down AMS printing
+    // Includes anchor points at shell corners so bounding box matches front_shell
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0]) {
+        dark_inlays_combined();
+        // Tiny anchor points at shell corners (invisible but set bounding box)
+        for (pos = [[0.1, 0.1], [shell_width-0.1, 0.1],
+                    [0.1, shell_height-0.1], [shell_width-0.1, shell_height-0.1]]) {
+            translate([pos[0], pos[1], shell_depth_front - 0.05])
+                cube([0.1, 0.1, 0.05]);
+        }
+    }
 }
 else {
     // Full assembly view
@@ -206,9 +284,17 @@ echo(str("Render part: ", render_part));
 echo(str("Exploded view: ", show_exploded));
 echo(str("Cross section: ", show_cross_section));
 echo("===========================================");
-echo("To export STL, set render_part to one of:");
-echo("  front_shell, back_shell, screen_bezel (DARK GRAY)");
+echo("STL EXPORT OPTIONS:");
+echo("");
+echo("=== AMS MULTI-COLOR (Bambu) ===");
+echo("  1. Export: front_shell");
+echo("  2. Export: inlay_dark_combined (pills)");
+echo("  3. Export: bezel_ams (screen frame)");
+echo("  4. Bambu: Import shell, Add Parts");
+echo("");
+echo("=== SINGLE COLOR PARTS ===");
+echo("  front_shell, back_shell, screen_bezel");
 echo("  dpad, button_a, button_b");
-echo("  text_inlay (BLACK), dot_inlay (RED)");
-echo("Then: Design > Render (F6), File > Export > STL");
+echo("");
+echo("WORKFLOW: Design > Render (F6), File > Export > STL");
 echo("===========================================");
