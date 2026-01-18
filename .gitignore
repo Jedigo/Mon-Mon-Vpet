@@ -16,8 +16,12 @@ Thumbs.db
 .idea/
 
 # Development render images (too many, regenerate with render.sh)
-*.png
-!docs/*.png
+hardware/**/*.png
+!hardware/docs/*.png
+!hardware/reference/*.png
 
 # Keep reference screenshot
 !Screenshot*.png
+
+# Allow software sprites
+!software/**/*.png

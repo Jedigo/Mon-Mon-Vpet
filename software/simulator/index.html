@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon-Mon Simulator</title>
+  </head>
+  <body>
+    <div id="device">
+      <div id="shell-container">
+        <!-- Canvas positioned on top at screen window -->
+        <canvas id="display"></canvas>
+        <!-- Shell image as frame -->
+        <img id="shell-image" src="/shell-front.png" alt="Mon-Mon Shell" />
+        <!-- 3 button hit areas: D-pad (single), A, B -->
+        <div id="btn-areas">
+          <button id="btn-dpad" class="hit-area" aria-label="D-pad"></button>
+          <button id="btn-a" class="hit-area" aria-label="A Button"></button>
+          <button id="btn-b" class="hit-area" aria-label="B Button"></button>
+        </div>
+      </div>
+    </div>
+    <div id="debug-panel">
+      <h3>Debug</h3>
+      <div id="debug-info"></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,151 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  gap: 30px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #fff;
+}
+
+/* Device container */
+#device {
+  display: flex;
+  justify-content: center;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+}
+
+/* Shell container - positions everything relative to shell image */
+#shell-container {
+  position: relative;
+  width: 352px;
+  height: 534px;
+}
+
+/* Shell image overlay */
+#shell-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  /* Smooth the render slightly */
+  image-rendering: auto;
+}
+
+/* Display canvas - positioned at screen window, ON TOP of shell */
+/* Measured from shell render: ~55px from left, ~18px from top, ~242px wide, ~198px tall */
+#display {
+  position: absolute;
+  left: 55px;
+  top: 20px;
+  width: 240px;
+  height: 195px;
+  background: #000;
+  z-index: 15;
+  /* Crisp pixel scaling */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border-radius: 2px;
+}
+
+/* Button hit areas container */
+#btn-areas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+}
+
+/* Base hit area styles - invisible but interactive */
+.hit-area {
+  position: absolute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.hit-area:active,
+.hit-area.pressed {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* D-pad hit area - single rocker switch covering the cross */
+#btn-dpad {
+  left: 12px;
+  top: 300px;
+  width: 112px;
+  height: 145px;
+  border-radius: 8px;
+}
+
+/* A/B button hit areas */
+#btn-a {
+  left: 273px;
+  top: 273px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+#btn-b {
+  left: 218px;
+  top: 318px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+/* Debug Panel */
+#debug-panel {
+  background: rgba(30, 30, 50, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 220px;
+  max-width: 280px;
+  height: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#debug-panel h3 {
+  margin-bottom: 15px;
+  color: #666;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+#debug-info {
+  font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  color: #4ade80;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+/* Keyboard hints */
+#debug-panel::after {
+  content: 'Space/Arrows = D-pad, X = A, Z = B';
+  display: block;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #555;
+  font-size: 11px;
+  line-height: 1.5;
+}

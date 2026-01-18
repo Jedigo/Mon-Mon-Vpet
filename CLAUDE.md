@@ -8,7 +8,7 @@ Mon-Mon Gen 3 is a 3D-printable virtual pet device enclosure designed in OpenSCA
 
 ## Current Status
 
-**Last Updated:** 2026-01-17
+**Last Updated:** 2026-01-18
 
 The shell design has been updated to be more DMG-accurate:
 - ✅ DMG-style curved bottom-right corner on both shells
@@ -27,10 +27,26 @@ Mon-Mon-Vpet-Project/
 ├── hardware/           # 3D printable enclosure
 │   ├── scad/           # OpenSCAD source files
 │   ├── stl/            # Exported STL files for printing
-│   ├── docs/           # Assembly guide, renders
+│   ├── docs/           # Assembly guide
 │   ├── reference/      # DMG Game Boy reference images
 │   └── render.sh       # OpenSCAD rendering script
 ├── software/           # ESP32 firmware (in development)
+│   ├── simulator/      # Web-based simulator (Vite + vanilla JS)
+│   │   ├── src/
+│   │   │   ├── main.js       # Main game loop, sprite switching, input
+│   │   │   ├── display.js    # Canvas display wrapper (176x220)
+│   │   │   ├── input.js      # Button input handling
+│   │   │   ├── sprites.js    # Sprite loading and entity classes
+│   │   │   └── battle.js     # Battle system with particle effects
+│   │   └── public/sprites/pokemon/  # Sprite assets
+│   │       ├── charmander_pixellab/  # PixelLab 8-dir sprites
+│   │       ├── charmander_battle/    # Gen 4/5 battle sprites
+│   │       └── battle_test/          # Battle system test sprites
+│   └── sprites/        # Sprite processing scripts and sources
+│       ├── Sprite Sheets/      # Source sprite sheets
+│       ├── Processed Sprites/  # Extracted individual sprites
+│       ├── Charmander_Reference/  # Direction reference images
+│       └── *.lua               # Aseprite processing scripts
 ├── CLAUDE.md
 └── SESSION_SUMMARY.md
 ```
@@ -153,6 +169,77 @@ Optional parameters: width, height, camera
 ./hardware/render.sh hardware/scad/file.scad output.png 800 600 0,0,0,55,0,25,200
 ```
 
+**IMPORTANT:** Delete render PNG files after viewing them. Do not accumulate renders in the project - the `.scad` source files are the source of truth and renders can always be regenerated.
+
+## Sprite Processing with Aseprite
+
+Aseprite is installed at: `D:\Steam\steamapps\common\Aseprite\Aseprite.exe`
+(WSL path: `/mnt/d/Steam/steamapps/common/Aseprite/Aseprite.exe`)
+
+### Processing Sprite Sheets
+
+The `process_sprite_sheet.lua` script extracts individual Pokemon from sprite sheets:
+
+```bash
+"/mnt/d/Steam/steamapps/common/Aseprite/Aseprite.exe" -b "path/to/spritesheet.png" --script "software/sprites/process_sprite_sheet.lua"
+```
+
+**What the script does:**
+1. Detects row/column separators (teal lines: RGB 0, 64, 128)
+2. Splits sprite sheet into individual Pokemon blocks
+3. Removes background colors via flood fill from edges
+4. Exports as `001_Bulbasaur.png`, `002_Ivysaur.png`, etc.
+
+**Configuration (in script):**
+- `SKIP_POSITIONS` - Grid positions to skip (for duplicates like Venusaur, female Pikachu)
+- `pokemon_names` - List of Pokemon names in Pokedex order
+- Background colors list for flood fill removal
+
+**Output:** `software/sprites/Processed Sprites/`
+
+## PixelLab AI Integration
+
+PixelLab MCP server is installed for AI-powered sprite generation.
+
+**Capabilities:**
+- Generate new sprite angles (8-directional movement)
+- Create animations (idle, walk, attack, etc.)
+- "Create from Reference" (Pro feature, web UI only) - generates matching sprites from single reference image
+- Inpainting and editing
+
+**Current Sprite Status:**
+- ✅ 151 Gen 1 Pokemon extracted from HGSS sprite sheet
+- ✅ 151 Pokemon organized in individual folders with south-facing sprites
+- ✅ PixelLab Charmander with 8 directions + walk/idle animations (48x48)
+- ✅ Gen 5 B/W static battle sprites for Charmander/Bulbasaur
+
+**Final Sprite Style Decision:**
+- **Overworld**: PixelLab isometric 8-direction (48×48)
+- **Battle**: Gen 5 B/W static sprites (96×96)
+
+## Web Simulator
+
+The simulator (`software/simulator/`) is a Vite + vanilla JS app that emulates the 176×220 ILI9225 display.
+
+**Running the simulator:**
+```bash
+cd software/simulator
+npm run dev
+```
+
+**Controls:**
+- **1-5**: Switch sprite styles (PixelLab, Gen4, Gen5 static, Gen5 breathing, Gen5 animated)
+- **6 or B**: Toggle battle mode
+- **A or Space**: Attack (in battle mode)
+- **D-pad**: Move character (in overworld)
+
+**Key Classes:**
+- `Display` - Canvas wrapper with pixel-art rendering
+- `AnimatedSprite` - Frame-based animation
+- `PokemonEntityAI` - Autonomous 8-directional movement with walk/idle behavior
+- `PokemonEntitySimple` - Static front-facing sprites
+- `BattleScreen` - FRLG-style battle system with particle effects
+
 ## Session Management
 
 When the user types `/close-session` or asks to close/end the session:
@@ -183,3 +270,81 @@ When the user types `/close-session` or asks to close/end the session:
 - Removed text labels (SELECT, START, Mon-Mon) - too small for legible FDM printing
 - Updated bezel to have 1.6mm depth for better print reliability
 - Added `front_shell_combined` render option as recommended export
+
+### 2026-01-18: Sprite Processing & PixelLab Setup
+
+**Accomplished:**
+- Reorganized project folders (created `hardware/reference/`, `software/sprites/`)
+- Created Aseprite Lua script to process HGSS Pokemon sprite sheets
+- Extracted all 151 Gen 1 Pokemon sprites with transparent backgrounds
+- Named by Pokedex number (001_Bulbasaur.png - 151_Mew.png)
+- Handled edge cases: duplicate Venusaur/Pikachu skips, row 11 height, various background colors
+- Fixed specific Pokemon manually: Wigglytuff, Slowbro, Lickitung, Aerodactyl, Mew
+- Installed PixelLab MCP server for AI sprite generation
+
+**Next steps:**
+- Use PixelLab to generate 8-directional sprites for Charmander (test)
+- Create idle and walk animations
+- Apply workflow to other Pokemon once tested
+
+### 2026-01-18: Sprite Comparison & Battle System Prototype
+
+**Sprite Research:**
+- Discovered Gen 5 sprites only have idle/breathing animations - NO separate attack/faint animations exist
+- Attack effects in official games are particle overlays + sprite transformations (shake, flash, scale)
+- ROM hacks (Unbound, Radical Red, etc.) use same approach - no custom attack sprite frames
+- Available sprite resources: [DS-style 64x64 Sprite Resource](https://www.pokecommunity.com/threads/the-ds-style-64x64-pok%C3%A9mon-sprite-resource-completed.267728/), [Gen VII+ Repository](https://www.pokecommunity.com/threads/ds-style-gen-vii-and-beyond-pok%C3%A9mon-sprite-repository-in-64x64.368703/)
+
+**Simulator Sprite Comparison:**
+- Added 5 sprite styles switchable with keys 1-5:
+  1. PixelLab isometric (8-dir, autonomous AI)
+  2. Gen 4 HGSS battle (80x80)
+  3. Gen 5 B/W static (96x96)
+  4. Gen 5 breathing (Aseprite-generated, had issues)
+  5. Gen 5 animated (55-frame original)
+- Downloaded Charmander back sprite and Bulbasaur front sprite for battle testing
+
+**Battle System (Option 3: One attacker at a time):**
+- Created `battle.js` with FRLG-style battle screen
+- Particle system with effects: ember (fire), hit (white burst), tackle (dust)
+- GBA-style grass background (programmatic - sky gradient, hills, grass field)
+- FRLG-style UI elements:
+  - HP bars (green/yellow/red based on health)
+  - Info boxes (tan background, double border)
+  - Text boxes (white with FRLG-style border)
+- Battle flow: Show attacker → Attack text → Particle effect → Show defender → Hit effect → Damage text
+- Controls: 6/B to toggle battle mode, A/Space to attack
+
+**Technical Notes:**
+- Screen size constraint: 176×220 with 96×96 sprites is tight
+- Option 3 (one attacker at a time) chosen for more room for effects
+- Spriters Resource has download protection - manual download required for official backgrounds
+
+### 2026-01-18: Sprite System Finalization & Pokemon Organization
+
+**Sprite Style Decision:**
+- ✅ **Overworld**: PixelLab isometric 8-direction sprites (48×48)
+- ✅ **Battle**: Gen 5 B/W static sprites (96×96)
+- Removed other sprite styles (Gen 4, Gen 5 animated, Charmander 2D) to simplify codebase
+
+**New PixelLab Character Downloaded:**
+- "Charmander 2D" (84×84, side-view) - downloaded via API for testing
+- Has walk animations (east/west) and breathing-idle
+- Kept in sprites folder but not used in final implementation
+
+**Battle Background:**
+- Extracted authentic FRLG grass battlefield from sprite sheet
+- Saved to `simulator/public/sprites/battle/grass_battlefield.png` (241×111)
+- Battle screen now uses real FRLG background instead of programmatic gradient
+
+**Pokemon Sprite Organization:**
+- Created `software/sprites/Pokemon/` folder structure
+- Each of 151 Pokemon has its own folder containing:
+  - Original HGSS sprite sheet (all directions)
+  - `south.png` - extracted front-facing sprite
+- Aseprite Lua script: `extract_single_south.lua`
+
+**Simulator Simplification:**
+- `sprites.js`: Only loadCharmanderPixelLab() and PokemonEntityAI class
+- `main.js`: Single overworld sprite, no style switching
+- Controls: 6/B for battle mode, A/Space to attack

@@ -1,64 +1,50 @@
-# Session Summary - 2026-01-16
+# Session Summary
 
-## Overview
-Reviewed and improved the Mon-Mon Gen 3 OpenSCAD design to be more accurate to the original Nintendo DMG Game Boy.
+## Session: 2026-01-17
 
-## Bugs Fixed
+### What Was Done
 
-### Critical
-1. **D-pad opening not cutting through** (`front_shell.scad`)
-   - Changed height from `shell_wall + 1` to `shell_depth_front + 1`
+1. **Pulled latest changes from repo**
+   - Project restructured into `hardware/` and `software/` directories
+   - New reference images added
+   - Screen bezel module added
 
-2. **Speaker grille not cutting through** (`front_shell.scad`)
-   - Same fix as D-pad
+2. **Regenerated all STL files**
+   - front_shell.stl, back_shell.stl, screen_bezel.stl
+   - dpad.stl, button_a.stl, button_b.stl
 
-3. **Floating internal features** (`front_shell.scad`)
-   - All internal features (display ledges, button guides, D-pad guide, piezo mount) were positioned at wrong Z height
-   - Fixed by calculating `interior_z = shell_depth_front - shell_wall` and positioning features relative to that
+3. **Implemented flush AMS multi-color inlay system**
+   - Converted recessed text pockets to through-hole cutouts (0.6mm deep)
+   - Created matching inlay pieces that sit perfectly flush with shell surface
+   - Affected elements: "VIRTUAL PET SYSTEM" text, SELECT/START labels, SELECT/START pill shapes
+   - New STL: `inlay_dark_combined.stl` (all dark pieces in one file)
 
-## Design Improvements
+4. **Removed incorrectly added features**
+   - Removed "Mon-Mon" branding text and red dot that were added without request
+   - Deleted obsolete `text_inlay.stl` and `dot_inlay.stl` files
 
-### Front Shell
-- Added DMG-style curved bottom-right corner (12mm radius)
-- Removed visible screw holes from front face
-- Added screw bosses inside (6mm tall) to receive screws from back
-- Improved screen bezel (more prominent, 0.8mm raised)
-- Added horizontal groove line between screen and controls area
-- Changed Select/Start from bumps to subtle pill-shaped indents
-- Rewrote speaker grille to match DMG:
-  - 6 diagonal pill-shaped slots
-  - Only 5 cut through (slot 0 is decorative/shallow)
-  - Properly contained within grille area
+### Current STL Files
 
-### Back Shell
-- Added DMG-style curved bottom-right corner (matches front)
-- Replaced screw posts with countersunk through-holes
-- Screws now enter from back, thread into front shell bosses
+| File | Description |
+|------|-------------|
+| front_shell.stl | Main shell with AMS through-hole cutouts |
+| inlay_dark_combined.stl | All dark inlay pieces (text + pills) |
+| back_shell.stl | Back shell |
+| screen_bezel.stl | Screen bezel (separate piece) |
+| dpad.stl | D-pad |
+| button_a.stl | A button |
+| button_b.stl | B button |
 
-## Files Modified
-- `scad/front_shell.scad` - Major rewrite for DMG accuracy
-- `scad/back_shell.scad` - Updated for screw-from-back design
-- `CLAUDE.md` - Updated with current status, TODO list, DMG reference info
+### Bambu Studio Workflow for AMS
 
-## Research Conducted
-Web searches for DMG Game Boy reference material:
-- Dimensions: 148mm × 90mm × 32mm (original)
-- Speaker grille: 6 slots, only 5 cut through
-- Curved bottom-right corner is distinctive DMG feature
-- A/B buttons: ~10-10.8mm diameter, domed
+1. Import `front_shell.stl`
+2. Right-click → Add Part → Add Part from File → `inlay_dark_combined.stl`
+3. In Objects panel, click color square next to each part to assign filaments
+4. Recommended settings: 0.2mm layer height, 3-4 walls, 15-20% infill
 
-## Remaining TODO
-- [ ] Verify internal features don't interfere with components
-- [ ] Test print and adjust tolerances
-- [ ] Add battery door/access panel
-- [ ] Consider grip texture on back
-- [ ] Refine button feel and travel
+### Files Modified
 
-## Commands Used
-```bash
-# Render and preview
-./render.sh scad/mon-mon.scad output.png
-
-# With custom camera angle
-./render.sh scad/file.scad output.png 800 600 "x,y,z,rx,ry,rz,dist"
-```
+- `hardware/scad/front_shell.scad` - AMS inlay system
+- `hardware/scad/mon-mon.scad` - Updated render options
+- `CLAUDE.md` - Updated status and documentation
+- `hardware/stl/*` - Regenerated all STL files
