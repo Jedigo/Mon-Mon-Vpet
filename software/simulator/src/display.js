@@ -1,13 +1,13 @@
 /**
- * ILI9225 Display Simulator
- * Simulates a 176x220 pixel display like the real hardware
+ * Waveshare 2.0" IPS Display Simulator
+ * Simulates a 320x240 pixel display (ST7789, landscape orientation) like the real hardware
  */
 
 export class Display {
   constructor(canvasId) {
-    // Native ILI9225 resolution
-    this.WIDTH = 176;
-    this.HEIGHT = 220;
+    // Waveshare 2.0" IPS resolution (landscape orientation)
+    this.WIDTH = 320;
+    this.HEIGHT = 240;
 
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');

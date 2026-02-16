@@ -13,7 +13,7 @@ tolerance_loose = 0.35;      // Loose fit (drop-in components)
 // -----------------------------------------------------------------------------
 // OVERALL SHELL DIMENSIONS
 // -----------------------------------------------------------------------------
-shell_width = 64;            // X dimension
+shell_width = 66;            // X dimension (updated for Waveshare 2.0" display)
 shell_height = 97;           // Y dimension
 shell_depth_total = 22;      // Z dimension (both halves combined)
 shell_depth_front = 12;      // Front shell depth
@@ -43,20 +43,20 @@ back_ridge_y_start = 10;      // Start Y position (lower portion)
 // -----------------------------------------------------------------------------
 // SCREEN WINDOW
 // -----------------------------------------------------------------------------
-screen_window_width = 43;    // Visible opening width
-screen_window_height = 35;   // Visible opening height
+// Waveshare 2.0" IPS display (ST7789, 240x320, mounted landscape = 320x240)
+// Active area: ~40.6mm x 30.5mm, PCB: 58mm x 35mm
+screen_window_width = 42;    // Visible opening width (active area ~40.6mm)
+screen_window_height = 32;   // Visible opening height (active area ~30.5mm)
 screen_bezel_width = 6;      // Bezel around visible area
 
 // Screen position (center of window from shell origin at bottom-left)
 screen_center_x = shell_width / 2;
-screen_center_y = shell_height - 28;  // ~28mm from top edge to center
+screen_center_y = shell_height - 26;  // ~26mm from top edge to center
 
-// Display PCB dimensions (adjustable mounting - these are estimates)
-display_pcb_width_min = 48;
-display_pcb_width_max = 54;
-display_pcb_height_min = 36;
-display_pcb_height_max = 42;
-display_pcb_thickness = 3.5;
+// Display PCB dimensions (Waveshare 2.0" IPS - 58x35mm landscape)
+display_pcb_width = 58;      // PCB width (landscape orientation)
+display_pcb_height = 35;     // PCB height (landscape orientation)
+display_pcb_thickness = 3.7; // PCB + components thickness
 
 // Display mounting ledge
 display_ledge_depth = 2.0;   // How far ledge extends under PCB
@@ -183,7 +183,7 @@ ab_plate_y = button_b_y - ab_plate_length/2 + (button_a_y - button_b_y)/2;
 // SCREW POSTS
 // -----------------------------------------------------------------------------
 screw_post_outer_diameter = 4.5;
-screw_post_inner_diameter = 1.6;  // For M2 self-tap
+screw_post_inner_diameter = 1.8;  // For M2 self-tap (1.8mm accounts for FDM hole shrinkage)
 screw_post_height = 8;
 screw_head_diameter = 4;
 screw_head_depth = 1.5;      // Countersink depth

@@ -25,3 +25,12 @@ hardware/**/*.png
 
 # Allow software sprites
 !software/**/*.png
+
+# Playwright MCP screenshots (dev temp files)
+.playwright-mcp/
+
+# Windows WSL zone identifier files
+*:Zone.Identifier
+
+# Downloaded zip archives
+*.zip

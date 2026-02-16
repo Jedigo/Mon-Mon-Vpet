@@ -1,6 +1,7 @@
 // =============================================================================
 // Mon-Mon Gen 3 - Front Shell
-// DMG Game Boy inspired design at 71% scale
+// DMG Game Boy inspired design at ~73% scale (66x97mm)
+// Updated for Waveshare 2.0" IPS display (58x35mm PCB)
 // =============================================================================
 
 // Include parameters (safe to include multiple times)
@@ -228,11 +229,13 @@ module start_text_cutout() {
          font="Liberation Sans:style=Bold");
 }
 
-// SELECT pill cutout
+// SELECT pill cutout - cuts through to exterior for flush AMS printing
 module select_pill_cutout() {
-    translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - inlay_total_depth])
+    // Cut through to surface so pill sits flush at Z=0 after flip
+    pill_pocket_depth = 1.1;  // Cut through to exterior (pills are 1.0mm thick)
+    translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - 1.0])
     rotate([0, 0, select_start_angle])
-    linear_extrude(height=inlay_total_depth + 0.1)
+    linear_extrude(height=pill_pocket_depth)
     offset(r=inlay_clearance)
     hull() {
         translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
@@ -240,11 +243,12 @@ module select_pill_cutout() {
     }
 }
 
-// START pill cutout
+// START pill cutout - cuts through to exterior for flush AMS printing
 module start_pill_cutout() {
-    translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - inlay_total_depth])
+    pill_pocket_depth = 1.1;  // Cut through to exterior (pills are 1.0mm thick)
+    translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - 1.0])
     rotate([0, 0, select_start_angle])
-    linear_extrude(height=inlay_total_depth + 0.1)
+    linear_extrude(height=pill_pocket_depth)
     offset(r=inlay_clearance)
     hull() {
         translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
@@ -300,11 +304,12 @@ module start_text_inlay() {
 }
 
 // SELECT pill inlay
-// Protrudes 0.1mm ABOVE shell surface so Split to Parts recognizes it as separate
+// Flush with shell surface (stays separate mesh without boolean union)
 module select_pill_inlay() {
-    translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - 0.5])
+    // Pills are 1.0mm thick, starting 1.0mm below surface = flush with surface
+    translate([shell_width/2 - select_start_spacing/2, select_start_y, shell_depth_front - 1.0])
     rotate([0, 0, select_start_angle])
-    linear_extrude(height=0.6)  // 0.5mm below surface + 0.1mm above
+    linear_extrude(height=1.0)  // Flush with shell surface
     offset(r=inlay_overlap)
     hull() {
         translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
@@ -313,10 +318,11 @@ module select_pill_inlay() {
 }
 
 // START pill inlay
+// Flush with shell surface (stays separate mesh without boolean union)
 module start_pill_inlay() {
-    translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - 0.5])
+    translate([shell_width/2 + select_start_spacing/2, select_start_y, shell_depth_front - 1.0])
     rotate([0, 0, select_start_angle])
-    linear_extrude(height=0.6)  // 0.5mm below surface + 0.1mm above
+    linear_extrude(height=1.0)  // Flush with shell surface
     offset(r=inlay_overlap)
     hull() {
         translate([-select_start_width/2 + 1.5, 0]) circle(d=3, $fn=24);
@@ -338,36 +344,39 @@ module dark_inlays_combined() {
 // Old recessed approach replaced by through-hole cutouts for flush AMS printing
 
 // -----------------------------------------------------------------------------
-// Bezel Relief Pocket (deep pocket for AMS bezel with anchor)
+// Bezel Relief Pocket (cut-through for AMS bezel to be flush with exterior)
 // -----------------------------------------------------------------------------
 module bezel_relief_pocket() {
     // Bezel dimensions (must match screen_bezel module)
     bezel_outer_w = screen_window_width + bezel_margin * 2;
     bezel_outer_h = screen_window_height + bezel_margin * 2;
-    relief_depth = 1.6;       // Deep pocket for AMS bezel (0.6 surface + 1.0 anchor)
-    relief_clearance = 0.05;  // Minimal clearance - bezel overlaps for AMS
+
+    // Cut all the way through to exterior surface so bezel sits flush at Z=0
+    // The bezel (separate STL) will fill this opening
+    relief_depth = 1.7;       // Cut through to exterior (bezel is 1.6mm thick)
+    relief_clearance = 0.05;  // Minimal clearance
 
     // Corner radii - must match screen_bezel
     corner_r = bezel_corner_radius;
     corner_r_br = 6;  // Bottom-right slightly larger radius
 
-    // Create pocket slightly larger than bezel footprint
+    // Create through-pocket - bezel fills this opening flush with shell exterior
     translate([screen_center_x - bezel_outer_w/2 - relief_clearance,
                screen_center_y - screen_window_height/2 - bezel_margin - relief_clearance,
-               shell_depth_front - relief_depth])
+               shell_depth_front - 1.6])  // Start at bezel depth
     hull() {
         // Top-left corner
         translate([corner_r, bezel_outer_h - corner_r + relief_clearance*2, 0])
-            cylinder(h=relief_depth + 0.1, r=corner_r + relief_clearance, $fn=24);
+            cylinder(h=relief_depth, r=corner_r + relief_clearance, $fn=24);
         // Top-right corner
         translate([bezel_outer_w - corner_r + relief_clearance*2, bezel_outer_h - corner_r + relief_clearance*2, 0])
-            cylinder(h=relief_depth + 0.1, r=corner_r + relief_clearance, $fn=24);
+            cylinder(h=relief_depth, r=corner_r + relief_clearance, $fn=24);
         // Bottom-left corner
         translate([corner_r, corner_r, 0])
-            cylinder(h=relief_depth + 0.1, r=corner_r + relief_clearance, $fn=24);
+            cylinder(h=relief_depth, r=corner_r + relief_clearance, $fn=24);
         // Bottom-right corner (slightly larger radius)
         translate([bezel_outer_w - corner_r_br + relief_clearance*2, corner_r_br, 0])
-            cylinder(h=relief_depth + 0.1, r=corner_r_br + relief_clearance, $fn=32);
+            cylinder(h=relief_depth, r=corner_r_br + relief_clearance, $fn=32);
     }
 }
 
@@ -545,34 +554,34 @@ module front_shell() {
         }
     }
 
-    // Display mounting ledges (adjustable slots)
+    // Display mounting ledges (for Waveshare 2.0" IPS - 58x35mm PCB)
     // Bottom ledge
-    translate([screen_center_x - display_pcb_width_max/2 - 2,
+    translate([screen_center_x - display_pcb_width/2 - 2,
                screen_center_y - screen_window_height/2 - display_ledge_depth - 3,
                interior_z - display_ledge_height]) {
-        cube([display_pcb_width_max + 4, display_ledge_depth, display_ledge_height]);
+        cube([display_pcb_width + 4, display_ledge_depth, display_ledge_height]);
     }
 
     // Top ledge
-    translate([screen_center_x - display_pcb_width_max/2 - 2,
+    translate([screen_center_x - display_pcb_width/2 - 2,
                screen_center_y + screen_window_height/2 + 3,
                interior_z - display_ledge_height]) {
-        cube([display_pcb_width_max + 4, display_ledge_depth, display_ledge_height]);
+        cube([display_pcb_width + 4, display_ledge_depth, display_ledge_height]);
     }
 
-    // Side ledges (shorter, allow variance)
+    // Side ledges
     // Left
-    translate([screen_center_x - display_pcb_width_max/2 - display_ledge_depth - 2,
-               screen_center_y - display_pcb_height_min/2,
+    translate([screen_center_x - display_pcb_width/2 - display_ledge_depth - 2,
+               screen_center_y - display_pcb_height/2,
                interior_z - display_ledge_height]) {
-        cube([display_ledge_depth, display_pcb_height_min, display_ledge_height]);
+        cube([display_ledge_depth, display_pcb_height, display_ledge_height]);
     }
 
     // Right
-    translate([screen_center_x + display_pcb_width_max/2 + 2,
-               screen_center_y - display_pcb_height_min/2,
+    translate([screen_center_x + display_pcb_width/2 + 2,
+               screen_center_y - display_pcb_height/2,
                interior_z - display_ledge_height]) {
-        cube([display_ledge_depth, display_pcb_height_min, display_ledge_height]);
+        cube([display_ledge_depth, display_pcb_height, display_ledge_height]);
     }
 
     // Button guide walls (keep A/B buttons aligned)

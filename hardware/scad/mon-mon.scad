@@ -30,14 +30,15 @@ use <components/tact_switch.scad>
 //          "button_a", "button_b"
 //
 // === AMS MULTI-COLOR PRINTING (Bambu) ===
-// RECOMMENDED: Use "front_shell_combined" and color painting:
-//   1. Export "front_shell_combined" (shell + bezel + pills as one STL)
-//   2. Import into Bambu Studio
-//   3. Use color painting to paint bezel and pills a different color
-//   4. Slice and print
+// RECOMMENDED WORKFLOW - Export 3 separate STLs and import together:
+//   1. Export "front_shell_light" (shell body only - light grey)
+//   2. Export "front_shell_dark" (bezel + pills - dark grey)
+//   3. In Bambu Studio: File → Import, select BOTH STLs at once
+//   4. Click "Yes" when asked to load as single object with multiple parts
+//   5. Assign filaments to each part
 //
-// Alternative (separate parts - may have alignment issues):
-//   "front_shell", "inlay_dark_combined", "bezel_ams"
+// Legacy combined export (may have Split to Parts issues):
+//   "front_shell_combined" - requires Split to Parts which can miss bodies
 render_part = "none";
 
 // Visualization toggles (only apply when render_part = "none")
@@ -159,14 +160,28 @@ module cross_section_view() {
 // RENDER LOGIC
 // -----------------------------------------------------------------------------
 
-if (render_part == "front_shell_combined") {
-    // AMS: Shell + bezel + pills as SEPARATE meshes in one STL
-    // FLIPPED for face-down printing (exterior at Z=0)
-    // In Bambu Studio: Right-click → Split to Parts → assign colors
+if (render_part == "front_shell_light") {
+    // AMS: Shell body only (light grey) - FLIPPED for face-down printing
+    // Import this together with front_shell_dark.stl into Bambu Studio
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0])
+    front_shell();
+}
+else if (render_part == "front_shell_dark") {
+    // AMS: Bezel + pills (dark grey) - FLIPPED for face-down printing
+    // Import this together with front_shell_light.stl into Bambu Studio
+    translate([0, shell_height, shell_depth_front])
+    rotate([180, 0, 0]) {
+        screen_bezel_ams_positioned();
+        dark_inlays_combined();
+    }
+}
+else if (render_part == "front_shell_combined") {
+    // LEGACY: Shell + bezel + pills as SEPARATE meshes in one STL
+    // Note: Split to Parts in Bambu Studio may miss bodies - use separate STLs instead
     translate([0, shell_height, shell_depth_front])
     rotate([180, 0, 0]) {
         front_shell();
-        // Bezel and pills slightly inset (no overlap) so they stay separate meshes
         screen_bezel_ams_positioned();
         dark_inlays_combined();
     }
@@ -287,10 +302,11 @@ echo("===========================================");
 echo("STL EXPORT OPTIONS:");
 echo("");
 echo("=== AMS MULTI-COLOR (Bambu) ===");
-echo("  1. Export: front_shell");
-echo("  2. Export: inlay_dark_combined (pills)");
-echo("  3. Export: bezel_ams (screen frame)");
-echo("  4. Bambu: Import shell, Add Parts");
+echo("  1. Export: front_shell_light (shell body)");
+echo("  2. Export: front_shell_dark (bezel + pills)");
+echo("  3. Bambu: Import BOTH STLs at once");
+echo("  4. Click Yes to load as single object");
+echo("  5. Assign filaments to each part");
 echo("");
 echo("=== SINGLE COLOR PARTS ===");
 echo("  front_shell, back_shell, screen_bezel");
